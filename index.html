@@ -1,0 +1,230 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Interactive Map</title>
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+	  <script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
+	  <!-- <div id='map' style='width: 1350px; height: 575px;'></div> -->
+    <div id='map'></div>
+    <div class='map-overlay' id='features'><h2>US Property Tax</h2><div id='pd'><p>Hover over a region!</p></div></div>
+    <div class='map-overlay' id='legend'></div>
+  </head>
+  <body>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.min.js"></script>
+    <link
+    rel="stylesheet"
+    href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.5.1/mapbox-gl-geocoder.css"
+    type="text/css"
+    />
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    h2,
+    h3 {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+
+    h3 {
+      font-size: 1em;
+    }
+
+    p {
+      font-size: 0.85em;
+      margin: 10px;
+      text-align: left;
+    }
+
+    /**
+    * Create a position for the map
+    * on the page */
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+
+    /**
+    * Set rules for how the map overlays
+    * (information box and legend) will be displayed
+    * on the page. */
+    .map-overlay {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 20px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+
+    #features {
+      top: 0;
+      right: 50;
+      height: 215px;
+      margin-top: 20px;
+      width: 250px;
+    }
+
+    #legend {
+      right: 50;
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      line-height: 18px;
+      height: 75px;
+      margin-bottom: 40px;
+      width: 100px;
+    }
+
+    .legend-key {
+      display: inline-block;
+      border-radius: 20%;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
+    </style>
+
+    <script>
+      mapboxgl.accessToken = 'pk.eyJ1IjoiYWhudyIsImEiOiJja2ZlN3FtdmMwMDF5MzhvNmV2MTR5aGh1In0.0GbDLZhYZuPa0zK6-va2hQ';
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/ahnw/ckfiwzwkd1ogl1aqjgpa36l0y'
+      });
+      map.on('load', function() {
+        // var layers = ['0-10', '10-20', '20-50', '50-100', '100-200', '200-500', '500-1000', '1000+'];
+        // var colors = ['#1A9850','#66BD63','#A6D96A','#D9EF8B','#FEE08B','#FDAE61','#F46D43','#D73027'];
+        var colors = ['#FEE08B','#FDAE61','#F46D43','#D73027'];
+        var layers = ['Quartile 1', 'Quartile 2', 'Quartile 3', 'Quartile 4'];
+        // var colors = ['#fcf5ff', '#f4d7fe', '#efbefe', '#e7a1fd', '#e392fc', '#d866fa', '#fdaff3', '#fc7eeb', '#fc4ae5'];
+        // var colors = ['#f5fffe', '#c4fdfc', '#1df4fc', '#05d9f5', '#04c2f6', '#1493fa', '#0375d8', '#0434a4', '#042c8b'];
+        lay = ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+        for (i = 0; i < layers.length; i++) {
+          var layer = layers[i];
+          var color = colors[i];
+          var item = document.createElement('div');
+          var key = document.createElement('span');
+          key.className = 'legend-key';
+          key.style.backgroundColor = color;
+
+          var value = document.createElement('span');
+          value.innerHTML = layer;
+          item.appendChild(key);
+          item.appendChild(value);
+          legend.appendChild(item);
+        }
+
+        // ((m[0].properties.r10_90 * 100).toFixed(2)+"%")
+        map.on('mousemove', 'states', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.NAME + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'states', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+        map.on('mousemove', 'counties', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.Name + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_INCOME.toFixed(0) + '</strong> Median Income </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_TAX.toFixed(0) + '</strong> Median Tax </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_SALE_PRICE.toFixed(0) + '</strong> Median Sale Price </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_WHITE.toFixed(2) + '</strong> Percentage White </em></p>'//+ '</strong></h3><p> Click to Access Report </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'counties', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+        map.on('mousemove', 'us-tract1', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.NAME + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_INCOME.toFixed(0) + '</strong> Median Income </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_TAX.toFixed(0) + '</strong> Median Tax </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_SALE_PRICE.toFixed(0) + '</strong> Median Sale Price </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_WHITE.toFixed(2) + '</strong> Percentage White </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'us-tract1', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+        map.on('mousemove', 'us-tract2', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.NAME + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_INCOME.toFixed(0) + '</strong> Median Income </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_TAX.toFixed(0) + '</strong> Median Tax </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_SALE_PRICE.toFixed(0) + '</strong> Median Sale Price </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_WHITE.toFixed(2) + '</strong> Percentage White </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'us-tract2', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+        map.on('mousemove', 'us-tract3', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.NAME + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_INCOME.toFixed(0) + '</strong> Median Income </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_TAX.toFixed(0) + '</strong> Median Tax </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_SALE_PRICE.toFixed(0) + '</strong> Median Sale Price </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_WHITE.toFixed(2) + '</strong> Percentage White </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'us-tract3', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+        map.on('mousemove', 'us-tract4', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+          if (m.length) {
+            document.getElementById('pd').innerHTML = '<h3><strong>' + m[0].properties.NAME + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_ASSESSED_RATE.toFixed(2) + '</strong> Assessment Rate </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_INCOME.toFixed(0) + '</strong> Median Income </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_TAX.toFixed(0) + '</strong> Median Tax </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_SALE_PRICE.toFixed(0) + '</strong> Median Sale Price </em></p>' + '</strong></h3><p><strong><em>' + m[0].properties.MEDIAN_WHITE.toFixed(2) + '</strong> Percentage White </em></p>';
+          } else {
+            document.getElementById('pd').innerHTML = '<p>Hover over a region!</p>';
+          }
+        });
+        map.on('mouseleave', 'us-tract4', function(e) {
+          var m = map.queryRenderedFeatures(e.point, {
+            layers: ['states', 'counties', 'us-tract1', 'us-tract2', 'us-tract3', 'us-tract4']
+          });
+        });
+
+      });
+      map.addControl(new mapboxgl.NavigationControl());
+      const geocoder = new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl
+      });
+    </script>
+
+  </body>
+</html> --
+
